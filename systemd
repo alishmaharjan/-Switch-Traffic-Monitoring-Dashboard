@@ -1,0 +1,87 @@
+root@kali-hash:/home/kali/thrukpolling# which python
+/home/kali/thrukpolling/venv/bin/python
+
+Perfect. That means your ExecStart will use:
+
+/home/kali/thrukpolling/venv/bin/python
+
+Now let's create the service properly.
+
+1. Create the service file
+sudo nano /etc/systemd/system/thrukcollector.service
+
+Paste this:
+
+[Unit]
+Description=Huawei Thruk Traffic Collector
+After=network.target
+
+[Service]
+Type=simple
+
+User=root
+Group=root
+
+WorkingDirectory=/home/kali/thrukpolling
+
+ExecStart=/home/kali/thrukpolling/venv/bin/python /home/kali/thrukpolling/thruk_collector.py
+
+Restart=always
+RestartSec=5
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target
+
+I used User=root because all of your commands and testing have been done as root. If you later want to run it as kali, we can change that.
+
+2. Reload systemd
+sudo systemctl daemon-reload
+3. Enable it on boot
+sudo systemctl enable thrukcollector
+
+Expected output:
+
+Created symlink /etc/systemd/system/multi-user.target.wants/thrukcollector.service → /etc/systemd/system/thrukcollector.service.
+4. Start it
+sudo systemctl start thrukcollector
+5. Check its status
+sudo systemctl status thrukcollector
+
+You should see something like:
+
+● thrukcollector.service
+     Loaded: loaded
+     Active: active (running)
+6. Watch the live logs
+
+This is much nicer than running the script manually:
+
+journalctl -u thrukcollector -f
+
+You should see output similar to:
+
+Collecting data from Thruk...
+
+GE0/0/22  UP
+GE0/0/23  UP
+GE0/0/24  DOWN
+
+Saved 3 interfaces
+RRDs updated
+Graphs generated
+7. Reboot test
+
+After rebooting:
+
+sudo reboot
+
+Then check:
+
+sudo systemctl status thrukcollector
+
+If it shows:
+
+Active: active (running)

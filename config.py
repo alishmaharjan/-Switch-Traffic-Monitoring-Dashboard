@@ -1,0 +1,6 @@
+SWITCH_IP = "192.168.200.2"
+COMMUNITY = "admin123"
+
+POLL_INTERVAL = 60
+
+DATA_FILE = "traffic.db"

@@ -1,0 +1,342 @@
+#Switch Traffic Monitoring Dashboard
+Thruk + Naemon + Python + RRDTool
+Project Objective
+
+Develop a lightweight Network Monitoring Dashboard that:
+
+Retrieves interface traffic from Huawei switches
+Uses Thruk/Naemon as the monitoring backend
+Polls interface data automatically
+Stores historical traffic
+Generates RRD graphs
+Displays graphs inside a custom web dashboard
+
+Huawei Switch
+      │
+      │ SNMP
+      ▼
+Naemon
+      │
+Custom check_iftraffic64.py
+      │
+      ▼
+Service Status + Performance Data
+      │
+      ▼
+Livestatus Socket
+(/var/cache/naemon/live)
+      │
+      ▼
+thruk_collector.py
+      │
+      ├──────── SQLite Database
+      │
+      ├──────── RRD Database
+      │
+      └──────── PNG Graphs
+      │
+      ▼
+Flask API
+      │
+      ▼
+Dashboard
+
+
+
+
+
+Phase 1 — Huawei Switch Monitoring
+Host Creation
+
+Created Huawei Switch host inside Naemon.
+
+Example
+
+define host{
+    host_name       Office-huawei-switch
+    address         192.168.200.2
+    use             generic-switch
+}
+Service Creation
+
+Each interface has its own service.
+
+Example
+
+GE0/0/22 Traffic
+GE0/0/23 Traffic
+GE0/0/24 Traffic
+Custom Plugin
+
+Instead of using
+
+check_snmp
+
+a custom plugin
+
+check_iftraffic64.py
+
+was developed.
+
+This plugin:
+
+reads ifHCInOctets
+reads ifHCOutOctets
+reads ifOperStatus
+reads ifSpeed
+calculates Mbps
+calculates utilization %
+caches previous counters
+outputs Naemon performance data
+
+Example output
+
+OK - GigabitEthernet0/0/22 UP
+
+RX=23.5 Mbps
+TX=5.3 Mbps
+RX Util=2.3%
+TX Util=0.5%
+
+| rx=23.5 tx=5.3
+Phase 2 — Reading Data from Thruk
+
+Instead of polling the switch again, we reuse the monitoring data already collected by Naemon.
+
+The collector reads directly from Livestatus.
+
+Socket
+
+/var/cache/naemon/live
+
+Query
+
+GET services
+
+Columns:
+host_name
+description
+state
+plugin_output
+
+Filter:
+host_name = Office-huawei-switch
+
+Filter:
+description ~~ Traffic
+
+Returned Example
+
+Office-huawei-switch
+GE0/0/22 Traffic
+0
+OK - RX=0.23Mbps TX=0.52Mbps ...
+
+Python parses
+
+interface
+state
+RX Mbps
+TX Mbps
+utilization
+speed
+
+No additional SNMP polling is required.
+
+Phase 3 — SQLite Database
+
+Database
+
+traffic.db
+
+Main Tables
+
+thruk_ports
+
+Stores latest interface status.
+
+Fields
+
+interface
+
+status
+
+speed
+
+rx_mbps
+
+tx_mbps
+
+rx_util
+
+tx_util
+
+last_update
+Phase 4 — RRD Database
+
+Each interface owns one RRD file.
+
+Example
+
+GE0_0_22.rrd
+
+GE0_0_23.rrd
+
+GE0_0_24.rrd
+
+Each poll updates
+
+RX Mbps
+
+TX Mbps
+
+RRD stores
+
+1 Hour
+24 Hours
+7 Days
+30 Days
+1 Year
+
+automatically.
+
+Phase 5 — Graph Generation
+
+Python
+
+rrd_manager.py
+
+uses
+
+rrdtool graph
+
+to generate
+
+PNG
+
+graphs.
+
+Example
+
+GE0_0_22_24h.png
+
+GE0_0_22_7d.png
+
+GE0_0_22_30d.png
+
+These graphs resemble traditional NMS systems like:
+
+Cacti
+LibreNMS
+Thruk
+PNP4Nagios
+Phase 6 — Flask Backend
+
+Flask exposes
+
+GET /api/interfaces
+
+Returns
+
+{
+    "summary": {},
+    "interfaces": []
+}
+
+Dashboard refreshes every
+
+30 seconds
+
+Graph Endpoint
+
+/graph/<interface>/<period>
+
+Example
+
+/graph/GE0_0_22/24h
+
+Backend generates graph if missing.
+
+Phase 7 — Frontend Dashboard
+
+Technologies
+
+HTML
+CSS
+JavaScript
+
+Features
+
+✓ Summary Cards
+
+Total Ports
+Ports UP
+Ports DOWN
+Total RX
+Total TX
+
+✓ Search Interface
+
+✓ Utilization Bars
+
+✓ Graph Popup
+
+✓ 1 Hour
+
+✓ 24 Hours
+
+✓ 7 Days
+
+✓ 30 Days
+
+✓ 1 Year
+
+Graphs automatically refresh.
+
+Automatic Polling Using Cron
+
+Instead of manually running
+
+python thruk_collector.py
+
+Cron automatically executes it.
+
+>>
+############################
+Technologies Used
+Huawei Switch
+SNMP v2c
+Naemon
+Thruk
+Livestatus
+Python 3
+SQLite
+RRDTool
+Flask
+HTML
+CSS
+JavaScript
+
+
+
+
+#####################################################
+#####################################################
+source venv/bin/activate
+
+
+for check_iftraffic64.py creation aftermath
+
+Create the cache directory and give ownership to naemon.
+
+mkdir -p /tmp/check_iftraffic64
+chown naemon:naemon /tmp/check_iftraffic64
+chmod 775 /tmp/check_iftraffic64
+
+Check:
+
+ls -ld /tmp/check_iftraffic64
+
+Should become something like
+
+drwxrwxr-x

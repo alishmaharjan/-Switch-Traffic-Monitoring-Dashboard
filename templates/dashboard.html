@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>Huawei Network Monitoring Dashboard</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+<div class="container">
+
+    <header>
+
+        <h1>Huawei Network Monitoring Dashboard</h1>
+
+        <div class="refresh">
+
+            Refresh:
+            <span id="lastUpdate">--</span>
+
+        </div>
+
+    </header>
+
+    <!-- ================= SUMMARY ================= -->
+
+    <div class="cards">
+
+        <div class="card blue">
+
+            <h3>Total Ports</h3>
+
+            <h2 id="totalPorts">0</h2>
+
+        </div>
+
+        <div class="card green">
+
+            <h3>Ports UP</h3>
+
+            <h2 id="portsUp">0</h2>
+
+        </div>
+
+        <div class="card red">
+
+            <h3>Ports DOWN</h3>
+
+            <h2 id="portsDown">0</h2>
+
+        </div>
+
+        <div class="card purple">
+
+            <h3>Total RX</h3>
+
+            <h2 id="totalRx">0 Mbps</h2>
+
+        </div>
+
+        <div class="card orange">
+
+            <h3>Total TX</h3>
+
+            <h2 id="totalTx">0 Mbps</h2>
+
+        </div>
+
+    </div>
+
+    <!-- ================= SEARCH ================= -->
+
+    <div class="toolbar">
+
+        <input
+            type="text"
+            id="search"
+            placeholder="Search Interface...">
+
+    </div>
+
+    <!-- ================= TABLE ================= -->
+
+    <table id="portsTable">
+
+        <thead>
+
+            <tr>
+
+                <th>Interface</th>
+
+                <th>Status</th>
+
+                <th>Speed</th>
+
+                <th>RX Mbps</th>
+
+                <th>TX Mbps</th>
+
+                <th>RX Utilization</th>
+
+                <th>TX Utilization</th>
+
+                <th>Graph</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody id="tableBody">
+
+        </tbody>
+
+    </table>
+
+</div>
+
+<!-- ================= GRAPH MODAL ================= -->
+
+<div id="graphModal" class="modal">
+
+    <div class="modal-content">
+
+        <div class="graph-header">
+
+            <h2 id="graphTitle">
+
+                Interface Graph
+
+            </h2>
+
+            <span
+                class="close"
+                onclick="closeGraph()">
+
+                &times;
+
+            </span>
+
+        </div>
+
+        <!-- Time Range -->
+
+        <div class="graph-toolbar">
+
+            <button id="btn_1h"
+                    onclick="loadGraph('1h')">
+
+                1 Hour
+
+            </button>
+
+            <button id="btn_24h"
+                    onclick="loadGraph('24h')">
+
+                24 Hours
+
+            </button>
+
+            <button id="btn_7d"
+                    onclick="loadGraph('7d')">
+
+                7 Days
+
+            </button>
+
+            <button id="btn_30d"
+                    onclick="loadGraph('30d')">
+
+                30 Days
+
+            </button>
+
+            <button id="btn_1y"
+                    onclick="loadGraph('1y')">
+
+                1 Year
+
+            </button>
+
+        </div>
+
+        <!-- Graph -->
+
+        <div class="graph-body">
+
+            <img
+                id="graphImage"
+                src=""
+                alt="Traffic Graph">
+
+        </div>
+
+        <!-- Statistics (for future use) -->
+
+        <div class="graph-footer">
+
+            <div id="graphStats">
+
+                Ready...
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="{{ url_for('static', filename='dashboard.js') }}"></script>
+
+</body>
+
+</html>

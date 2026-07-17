@@ -1,0 +1,14 @@
+Automatic Polling Using Cron
+
+Instead of manually running
+
+python thruk_collector.py
+
+Cron automatically executes it.
+
+Edit Cron
+crontab -e
+
+Run every 5 minutes
+
+*/5 * * * * cd /home/kali/thrukpolling && /home/kali/thrukpolling/venv/bin/python thruk_collector.py >> collector.log 2>&1
